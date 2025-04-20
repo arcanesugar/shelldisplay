@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <stdarg.h>
 
 #include <zlib.h>
 #include "shelldisplay.h"
@@ -14,11 +14,6 @@ typedef struct Texture{
   Color* pixels;
 }Texture;
 
-Color shader(double x, double y){
-  Color out = (Color){0.0, y, x};
-  return out;
-}
-
 typedef struct IHDRChunk{
   unsigned int width;//4 bytes
   unsigned int height;//4 bytes
@@ -28,6 +23,15 @@ typedef struct IHDRChunk{
   char filterMethod;
   char interlaceMethod;
 }IHDRChunk;
+
+_Noreturn void raiseError(char* fmt, ...){
+  fprintf(stderr, "Err: ");
+  va_list argptr;
+  va_start(argptr, fmt);
+  vfprintf(stderr, fmt, argptr);
+  va_end(argptr);
+  exit(EXIT_FAILURE);
+}
 
 void swapEndianness(unsigned int *x){
   char* bytes = (char*)x;//more dark pointer magic
@@ -41,7 +45,8 @@ void swapEndianness(unsigned int *x){
   bytes[2] ^= bytes[1];
   bytes[1] ^= bytes[2];
 }
-char paeth(unsigned char a, unsigned char b, unsigned char c){
+
+byte paeth(byte a, byte b, byte c){
     int p = a + b - c;
     int pa = abs(p - a);
     int pb = abs(p - b);
@@ -53,24 +58,33 @@ char paeth(unsigned char a, unsigned char b, unsigned char c){
     return Pr;
 }
 
-Texture decodeIdatData(byte* bytes, int iwidth, int iheight, int bytesPerPixel){
-  Texture texture;
+Texture textureFromIdatData(byte* bytesCompressed, size_t numCompressedBytes, int iwidth, int iheight, int bytesPerPixel){
+  //decompress the data
+  size_t numBytes = 4096<<9;//big buffer, temporary solution
+  byte *bytes = malloc(numBytes);
+  if(bytes == NULL) raiseError("Out of memory\n");
+  
+  int r = uncompress((Bytef*)bytes, &numBytes, (Bytef*)bytesCompressed, numCompressedBytes);
+  if(r!= Z_OK) raiseError("not enough space in decompressed data buffer\n");
+  bytes = realloc(bytes, numBytes);//shrink memory to required size
+  if(bytes == NULL) raiseError("Out of memory\n");
+  //undo filtering
   ulong bytesPerRow = (iwidth*bytesPerPixel)+1;
   for(int row = 0; row<iheight; row++){
     ulong index = row*bytesPerRow;
-    char filterType = bytes[index];
+    byte filterType = bytes[index];
     for(int i = 1; i<bytesPerRow; i++){
       byte a = 0;
-      if(i>4){
-        a = bytes[(index+i)-4];
+      if(i>bytesPerPixel){
+        a = bytes[(index+i)-bytesPerPixel];
       }
       byte b = 0;
       if(row>0){
-        b = bytes[(index+i)-bytesPerRow];
+        b = bytes[(index+i)-bytesPerPixel];
       }
       byte c = 0;
       if(row>0 && i>4){
-        c = bytes[(index+i)-bytesPerRow-4];
+        c = bytes[(index+i)-bytesPerRow-bytesPerPixel];
       }
       switch(filterType){
         case 0://no filtering
@@ -88,38 +102,39 @@ Texture decodeIdatData(byte* bytes, int iwidth, int iheight, int bytesPerPixel){
           bytes[(index+i)] += paeth(a, b, c);
         break;
         default:
-          printf("Unrecognised filter type (%d)\n", filterType);
+          raiseError("Unrecognised filter type (%d)\n", filterType);
         break;
       }
     }
   }
 
   //load data into texture
-  //texture.pixels = malloc(sizeof(Color)*texture.width*texture.height);
+  Texture texture;
+  texture.width = iwidth;
+  texture.height = iheight;
+  texture.pixels = malloc(sizeof(Color)*iwidth*iheight);
+  if(texture.pixels == NULL) raiseError("Out of memory\n");
   for(int row = 0; row<iheight; row++){
     ulong index = row*bytesPerRow;
     index+=1;
-    Color c;
-    for(int i = 0; i<iwidth; i++){
-      c.r = bytes[index+(i*4)]/255.0;
-      c.g = bytes[index+1+(i*4)]/255.0;
-      c.b = bytes[index+2+(i*4)]/255.0;
-      double a = bytes[index+3+(i*4)]/255.0;
-      truecolor(1, c);
-      printf("  ");
+    for(int col = 0; col<iwidth; col++){
+      Color *c = &texture.pixels[(row*iwidth)+col];
+      c->r = bytes[index+(col*4)]/255.0;
+      c->g = bytes[index+1+(col*4)]/255.0;
+      c->b = bytes[index+2+(col*4)]/255.0;
     }
-    clearFormatting();
-    printf("\n");
   }
+  free(bytes);
   return texture;
 }
+
 Texture loadPNG(char* filename){
   FILE* file = fopen(filename, "r");
   char signature[9];
   fread(signature,sizeof(char), 8, file);
   signature[8] = 0;
   if(strcmp("\211PNG\r\n\032\n", signature) != 0){
-    printf("File signature invalid");
+    raiseError("File signature invalid");
   }
 
   Texture texture;
@@ -172,9 +187,9 @@ Texture loadPNG(char* filename){
       unsigned char filterMethod = *(unsigned char*)(chunkData+11);
       unsigned char interlaceMethod = *(unsigned char*)(chunkData+12);
     
-      if(compressionMethod != 0) printf("Unrecognised compression method\n");
-      if(filterMethod != 0) printf("Unrecognised filter method\n");
-      if(interlaceMethod != 0) printf("Unrecognised interlace method\n");//method 1 is also valid, implement later
+      if(compressionMethod != 0) raiseError("Unrecognised compression method\n");
+      if(filterMethod != 0) raiseError("Unrecognised filter method\n");
+      if(interlaceMethod != 0) raiseError("Unrecognised interlace method\n");//method 1 is also valid, implement later
       
 
       /*
@@ -204,20 +219,26 @@ Texture loadPNG(char* filename){
     if(strcmp((const char*)chunkType, "IEND") == 0) break;//ignore the warning, its fine
   }
   
-  //decompress the data
-  size_t decompressedDataLen = 4096<<2;
-  unsigned char *decompressedData = malloc(decompressedDataLen);//enough for a small image
-  
-  int r = uncompress((Bytef*)decompressedData, &decompressedDataLen, (Bytef*)compressedData, compressedDataSize);
-  if(r!= Z_OK) printf("not enough space in decompressed data buffer\n");
+  texture = textureFromIdatData((byte*)compressedData, compressedDataSize, texture.width, texture.height, 4);
   free(compressedData);
-  texture = decodeIdatData(decompressedData, texture.width, texture.height, 4);
-  free(decompressedData);
   return texture;
 }
 
+
+Color textureSampleShader(double x, double y, Texture t){
+  int tx = (x*t.width);
+  int ty = (y*t.height);
+  return t.pixels[(ty*t.width)+tx];
+}
+Texture steve;
+
+Color steveShader(double x, double y){
+  return textureSampleShader(x, y, steve);
+}
+
 int main(void) {
-  Texture t = loadPNG("test.png");
-  printf("width: %d height: %d\n", t.width, t.height);
+  steve = loadPNG("steve.png");
+  drawCanvas(steveShader, 30, 30);
+  printf("width: %d height: %d\n", steve.width, steve.height);
   return 0;
 }
