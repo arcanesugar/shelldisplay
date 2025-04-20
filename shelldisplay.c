@@ -1,7 +1,5 @@
 #include "shelldisplay.h"
-
 #include <stdio.h>
-
 
 void setColor(bool background, Color color){
   int r = color.r*5.0;
@@ -38,5 +36,19 @@ void drawCanvas(Color (*pixelShader)(double, double), int width, int height){
     printf("\n");
   }
   clearFormatting();
-  
 };
+
+void drawTexture(Texture t, int width, int height){
+  for(int y = 0; y<height; y++){
+    for(int x = 0; x<width; x++){
+      int tx = (((double)x/width)*t.width);
+      int ty = (((double)y/height)*t.height);
+      Color sample =  t.pixels[(ty*t.width)+tx];
+      truecolor(1, sample);
+      printf("  ");
+    }
+    clearFormatting();
+    printf("\n");
+  }
+
+}
