@@ -59,6 +59,9 @@ static void undoFiltering(byte *bytes, int bytesPerPixel, int iwidth, int iheigh
   for(int row = 0; row<iheight; row++){
     ulong index = row*bytesPerRow;
     byte filterType = bytes[index];
+    //a b and c are filtered bytes (from seperate pixels if pixels are large enough)
+    //c b
+    //a x 
     for(int i = 1; i<bytesPerRow; i++){
       byte a = 0;
       if(i>bytesPerPixel){
@@ -66,7 +69,7 @@ static void undoFiltering(byte *bytes, int bytesPerPixel, int iwidth, int iheigh
       }
       byte b = 0;
       if(row>0){
-        b = bytes[(index+i)-bytesPerPixel];
+        b = bytes[(index+i)-bytesPerRow];
       }
       byte c = 0;
       if(row>0 && i>4){

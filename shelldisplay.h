@@ -12,12 +12,17 @@ typedef struct Texture{
   Color* pixels;
 }Texture;
 
+enum SampleMethods{
+  SAMPLE_NEAREST,
+  SAMPLE_BILINEAR
+};
+
 //shelldisplay.c
-void drawCanvas(Color (*pixelShader)(double, double), int width, int height);
 void setColor(bool background, Color color);
 void truecolor(bool background, Color color);
 void clearFormatting();
-void drawTexture(Texture t, int displayWidth, int displayHeight);
+Color sampleTexture(Texture *t, double x, double y, int method);
+Color lerpColors(Color a, Color b, double x);
 
 //shellpng.c
 Texture loadPng(char* filename);
