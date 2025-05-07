@@ -2,7 +2,7 @@ CC:=clang
 CFLAGS:=-MMD -MP -O3 -lz
 BINNAME:=main
 
-SRC:= main.c shellpng.c shelldisplay.c 
+SRC:= main.c shellpng.c shelldisplay.c printTexture.c
 OBJ:=$(SRC:.c=.o)
 DEP:=$(SRC:.c=.d)
 
