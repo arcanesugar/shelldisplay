@@ -23,6 +23,10 @@ void clearFormatting(){
   printf("\x1b[0m");
 }
 
+void clearScreen(){
+  printf("\033[2J");//clear screen
+  printf("\033[H");//return cursor home
+}
 Color lerpColors(Color a, Color b, double x){
   if(x<0 || x>1) raiseError("lerpColors(): x out of range (%f)", x);
   Color c;

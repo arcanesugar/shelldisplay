@@ -21,6 +21,7 @@ enum SampleMethods{
 void setColor(bool background, Color color);
 void truecolor(bool background, Color color);
 void clearFormatting();
+void clearScreen();
 Color sampleTexture(Texture *t, double x, double y, int method);
 Color lerpColors(Color a, Color b, double x);
 
