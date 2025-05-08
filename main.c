@@ -65,7 +65,7 @@ void delay(double sec){
 }
 
 void drawScreen(Texture* screen){
-  printTexture(screen, 60, 60, UPPER_HALF_BLOCK, SAMPLE_NEAREST);
+  printTexture(screen, 60, 60, PIX_UPPER_HALF_BLOCK, SAMPLE_NEAREST);
   printf("width: %d height: %d\n", screen->width, screen->height);
 };
 

@@ -27,6 +27,7 @@ void clearScreen(){
   printf("\033[2J");//clear screen
   printf("\033[H");//return cursor home
 }
+
 Color lerpColors(Color a, Color b, double x){
   if(x<0 || x>1) raiseError("lerpColors(): x out of range (%f)", x);
   Color c;
@@ -34,6 +35,13 @@ Color lerpColors(Color a, Color b, double x){
   c.g = (a.g+(b.g-a.g)*x);
   c.b = (a.b+(b.b-a.b)*x);
   return c;
+}
+
+bool compareColors(Color a, Color b){
+  if(a.r != b.r) return false;
+  if(a.g != b.g) return false;
+  if(a.b != b.b) return false;
+  return true;
 }
 
 Color sampleBilinear(Texture *t, double x, double y);
