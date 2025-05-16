@@ -1,8 +1,8 @@
 CC:=clang
-CFLAGS:=-MMD -MP -O3 -lz
+CFLAGS:=-MMD -MP -O3
 BINNAME:=main
 
-SRC:= main.c shellpng.c shelldisplay.c printTexture.c
+SRC:= main.c shelldisplay.c texture.c
 OBJ:=$(SRC:.c=.o)
 DEP:=$(SRC:.c=.d)
 

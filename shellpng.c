@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #include <zlib.h>
 
@@ -20,14 +19,6 @@ typedef struct IHDRChunk{
   char interlaceMethod;
 }IHDRChunk;
 
-_Noreturn void raiseError(char* fmt, ...){
-  fprintf(stderr, "Err: ");
-  va_list argptr;
-  va_start(argptr, fmt);
-  vfprintf(stderr, fmt, argptr);
-  va_end(argptr);
-  exit(EXIT_FAILURE);
-}
 
 static void swapEndianness(unsigned int *x){
   char* bytes = (char*)x;//more dark pointer magic

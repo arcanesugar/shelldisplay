@@ -1,6 +1,17 @@
 #include "shelldisplay.h"
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <math.h>
+
+_Noreturn void raiseError(char* fmt, ...){
+  fprintf(stderr, "Err: ");
+  va_list argptr;
+  va_start(argptr, fmt);
+  vfprintf(stderr, fmt, argptr);
+  va_end(argptr);
+  exit(EXIT_FAILURE);
+}
 
 void setColor(bool background, Color color){
   int r = color.r*5.0;
@@ -42,53 +53,4 @@ bool compareColors(Color a, Color b){
   if(a.g != b.g) return false;
   if(a.b != b.b) return false;
   return true;
-}
-
-Color sampleBilinear(Texture *t, double x, double y);
-Color sampleNearest(Texture *t, int x, int y);
-
-Color sampleTexture(Texture *t, double x, double y, int method){
-  switch(method){
-    case SAMPLE_NEAREST:
-      return sampleNearest(t, x*t->width, y*t->height);
-    case SAMPLE_BILINEAR:
-      return sampleBilinear(t, x, y);
-    default:
-      raiseError("Unrecognised sample type\n");
-  }
-}
-
-Color sampleNearest(Texture *t, int x, int y){
-
-  if(y<t->width && x<t->height && x>=0 && y>=0) return t->pixels[(y*t->width)+x];
-  return (Color){0, 0, 0};
-}
-
-Color sampleBilinear(Texture *t, double x, double y){
-  //  a --e-- b
-  //  |   |  |
-  //  |   g  |
-  //  |   |  |
-  //  c --f-- d
-  int ax, ay, bx, by, cx, cy, dx, dy;
-  ax = floor(x*(t->width-1));
-  ay = floor(y*(t->height-1));
-  dx = ax+1;
-  dy = ay+1;
-  //printf(" %d, %d, %d, %d |", ax, ay, dx, dy);
-  bx = dy;
-  by = ay;
-
-  cx = ax;
-  cy = dy;
-  
-  Color a = sampleNearest(t, ax, ay);
-  Color b = sampleNearest(t, bx, by);
-  Color c = sampleNearest(t, cx, cy);
-  Color d = sampleNearest(t, dx, dy);
-  
-  Color e = lerpColors(a, b, (x*(t->width-1))-ax);
-  Color f = lerpColors(c, d, (x*(t->width-1))-ax);
-
-  return lerpColors(e, f, (y*(t->height-1))-ay);//g
 }
