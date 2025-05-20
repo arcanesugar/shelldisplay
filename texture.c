@@ -50,16 +50,16 @@ void printTexture(Texture t, int pixelType){
 void printTextureDoubleSpace(Texture t){
   for(int y = 0; y<t.height; y++){
     Color lastColor = {1, 1, 1};
-    truecolor(1, lastColor);
+    setColor(1, lastColor);
     for(int x = 0; x<t.width; x++){
       Color c = getPixel(t, x,  y);
       if(!compareColors(lastColor, c)){
-        truecolor(1,c);
+        setColor(1,c);
         lastColor = c;
       }
       printf("  ");
     }
-    clearFormatting();
+    resetColor();
     printf("\n");
   }
 }
@@ -67,16 +67,16 @@ void printTextureDoubleSpace(Texture t){
 void printTextureSingleSpace(Texture t){
   for(int y = 0; y<t.height; y++){
     Color lastColor = {1, 1, 1};
-    truecolor(1, lastColor);
+    setColor(1, lastColor);
     for(int x = 0; x<t.width; x++){
       Color c = getPixel(t, x,  y);
       if(!compareColors(lastColor, c)){
-        truecolor(1,c);
+        setColor(1,c);
         lastColor = c;
       }
       printf(" ");
     }
-    clearFormatting();
+    resetColor();
     printf("\n");
   }
 }
@@ -86,23 +86,23 @@ void printTextureUnicodeUpperHalfBlock(Texture t){
   for(int y = 0; y<t.height; y+=2){
     Color lastA = {1, 1, 1};
     Color lastB = {1, 0, 1};
-    truecolor(0,lastA);
-    truecolor(1,lastB);
+    setColor(0,lastA);
+    setColor(1,lastB);
     for(int x = 0; x<t.width; x++){
       Color a = getPixel(t, x,  y);
       Color b = getPixel(t, x,  y+1);
       //background is lower pixel, foreground is upper
       if(!compareColors(lastA, a)){
-        truecolor(0,a);
+        setColor(0,a);
         lastA = a;
       }
       if(!compareColors(lastB, b)){
-        truecolor(1,b);
+        setColor(1,b);
         lastB = b;
       }
       printf("%s", utf8);
     }
-    clearFormatting();
+    resetColor();
     printf("\n");
   }
 }
@@ -133,20 +133,21 @@ Texture resampleTexture(Texture t, int width, int height, int method){
 }
 
 Color sampleBilinear(Texture t, double x, double y){
-  //  a --e-- b
-  //  |   |  |
-  //  |   g  |
-  //  |   |  |
-  //  c --f-- d
+  //  a -- e -- b
+  //  |    |    |
+  //  |    g    |
+  //  |    |    |
+  //  c -- f -- d
   int ax, ay, bx, by, cx, cy, dx, dy;
   ax = floor(x*(t.width-1));
   ay = floor(y*(t.height-1));
+  
   dx = ax+1;
   dy = ay+1;
-  //printf(" %d, %d, %d, %d |", ax, ay, dx, dy);
+  
   bx = dy;
   by = ay;
-
+  
   cx = ax;
   cy = dy;
   
@@ -158,5 +159,5 @@ Color sampleBilinear(Texture t, double x, double y){
   Color e = lerpColors(a, b, (x*(t.width-1))-ax);
   Color f = lerpColors(c, d, (x*(t.width-1))-ax);
 
-  return lerpColors(e, f, (y*(t.height-1))-ay);//g
+  return lerpColors(e, f, (y*(t.height-1))-ay);//returns g
 }
