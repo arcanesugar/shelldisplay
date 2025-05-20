@@ -89,3 +89,9 @@ bool compareColors(Color a, Color b){
   if(a.b != b.b) return false;
   return true;
 }
+Color multiplyColors(Color a, Color b){
+  return (Color){a.r*b.r, a.g*b.g, a.b*b.b};
+}
+Color invertColor(Color c){
+  return (Color){1-c.r, 1-c.g, 1-c.b};
+}

@@ -46,7 +46,9 @@ void setStyle(int style);
 void setColor(bool background, Color color);
 void resetColor();
 void clearScreen();
+Color invertColor(Color c);
 Color lerpColors(Color a, Color b, double x);
+Color multiplyColors(Color a, Color b);
 bool compareColors(Color a, Color b);
 
 // -------texture.c-------
