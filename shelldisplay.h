@@ -60,6 +60,3 @@ void fillTexture(Texture t, Color c);
 Color sampleTexture(Texture t, double x, double y, int method);
 Texture resampleTexture(Texture t, int width, int height, int method);
 void printTexture(Texture t, int pixelType);
-
-// -------shellpng.c-------
-Texture loadPng(char* filename);
