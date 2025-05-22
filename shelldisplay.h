@@ -52,7 +52,7 @@ Color multiplyColors(Color a, Color b);
 bool compareColors(Color a, Color b);
 
 // -------texture.c-------
-Texture createTexture(int width, int height);
+Texture allocTexture(int width, int height);
 void freeTexture(Texture t);
 void setPixel(Texture t, int x, int y, Color c);
 Color getPixel(Texture t, int x, int y);
