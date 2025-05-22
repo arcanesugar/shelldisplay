@@ -2,8 +2,57 @@ Imagine a shell, now imagine things displayed in it
 
 Every function is included in shelldisplay.h
 
+## Shelldisplay.c
+### _Noreturn void raiseError(char* fmt, ...)
+Raises an error, works like println
 
-## Textures:
+### void setColorMode(int mode)
+Set the color mode of the library, this changes the output of setColor and related functions\
+By default, CM_ANSICOLOR is the color mode\
+Using an color mode incompatible with the current terminal breaks most color related functions
+mode|desc
+---|---
+CM_ANSICOLOR| Supported by most terminals, chooses the closest color from a 256 element table (8 bit color)
+CM_TRUECOLOR| Supported by modern terminals, uses full 24 bit color
+
+### void setStyle(int style);
+Sets the style of text, everything printed after using this function will be using the specified style\
+Style can be changed in the middle of sentinces to mix different styles\
+Styles can be combined with bitwises or (eg S_BOLD|S_ITALIC)\
+enum|ex
+---|---
+S_BOLD| __Text__
+S_DIM| -
+S_ITALIC | _Text_
+S_UNDERLINE | <ins>Text</ins>
+S_BLINK| -
+S_INVERSE| -
+S_HIDDEN| -
+S_STRIKETHROUGH| ~~Text~~
+
+### void setColor(bool background, Color color)
+Sets the color of all text printed after the function call
+If background is true, sets the background color instead
+
+### void resetColor()
+Resets foreground and background colors to default
+
+### void clearScreen()
+Clears the terminal
+
+## Color invertColor(Color c)
+Returns 1-_c_
+
+## Color lerpColors(Color a, Color b, double x)
+Linearly interpolates between _a_ and _b_
+
+## Color multiplyColors(Color a, Color b)
+Returns _a_ and _b_ muliplied component-wise
+
+### bool compareColors(Color a, Color b);
+Returns true if _a_ == _b_
+
+## Texture.c:
 
 ### Texture allocTexture(int width, int height)
 Creates a new texture with the specified width and height.\
