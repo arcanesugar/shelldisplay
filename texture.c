@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <math.h>
 
-Texture createTexture(int width, int height){
+Texture allocTexture(int width, int height){
   Texture t;
   t.width = width;
   t.height = height;
